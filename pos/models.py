@@ -9,6 +9,7 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
+
 # orders made by customers
 class Order(models.Model):
     PAYMENT_METHODS = [
@@ -31,11 +32,25 @@ class Order(models.Model):
     def __str__(self):
         return f"Order #{self.id}"
 
+    # otal amount method
+    def get_total_amount(self):
+        total = 0
+        # self.items comes from related_name in OrderItem
+        for item in self.items.all():
+            total += item.get_total_price()
+        return total
+
+
 # items in each order
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)
+    order = models.ForeignKey(
+        Order, related_name="items", on_delete=models.CASCADE
+    )  
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
 
     def get_total_price(self):
         return self.product.price * self.quantity
+
+    def __str__(self):
+        return f"{self.quantity} x {self.product.name} (Order #{self.order.id})"
