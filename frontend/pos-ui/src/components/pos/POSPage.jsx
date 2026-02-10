@@ -6,6 +6,8 @@ import toast from "react-hot-toast";
 import TableSelector from "./TableSelector";
 import ProductGrid from "./ProductGrid";
 import CartPanel from "./CartPanel";
+import TableBar from "../layout/TableBar";
+
 
 const API = "http://127.0.0.1:8000/api";
 
@@ -26,86 +28,124 @@ export default function POSPage() {
     axios.get(`${API}/tables/`).then((res) => setTables(res.data));
   }, []);
 
-  /* ---------- SELECT TABLE ---------- */
-  const handleTableSelect = async (tableId) => {
-    setSelectedTable(tableId);
-    setLoadingOrder(true);
-
-    try {
-      const res = await axios.get(
-        `${API}/orders/by-table/${tableId}/`
-      );
-
-      setOrder(res.data);
-      setItems(res.data.items || []);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to load order");
-
-    } finally {
-      setLoadingOrder(false);
-    }
+ 
+  const refreshTables = async () => {
+    const res = await axios.get(`${API}/tables/`);
+    setTables(res.data);
   };
+
+  // other handlers below...
+
+
+
+  /* ---------- SELECT TABLE ---------- */
+ const handleTableSelect = async (tableId) => {
+  setSelectedTable(tableId);
+  setLoadingOrder(true);
+
+  try {
+    const res = await axios.get(
+      `${API}/orders/by-table/${tableId}/`
+    );
+
+    setOrder(res.data);
+    setItems(res.data.items || []);
+
+    // 🔥 THIS LINE FIXES YOUR ISSUE
+    await refreshTables();
+
+  } catch (err) {
+    toast.error("Failed to load order");
+  } finally {
+    setLoadingOrder(false);
+  }
+};
+
+
 
   /* ---------- ADD TO CART ---------- */
-  const handleAddToCart = async (productId) => {
-    if (!order) {
-      toast.error("Select a table first");
-      return;
-    }
+const handleAddToCart = async (productId) => {
+  if (!order) {
+    toast.error("Select a table first");
+    return;
+  }
 
-    try {
-      await axios.post(`${API}/order-items/`, {
-        order: order.id,
-        product: productId,
-        quantity: 1,
-      });
+  try {
+    await axios.post(`${API}/order-items/`, {
+      order: order.id,
+      product: productId,
+      quantity: 1,
+    });
 
-      await refreshOrder();
-      toast.success("Item added to cart");
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to add item");
-    }
-  };
+    await refreshOrder();
+    await refreshTables(); // 👈 important
+
+  } catch (err) {
+    toast.error("Failed to add item");
+  }
+};
 
   /* ---------- UPDATE QUANTITY ---------- */
   const updateItemQty = async (itemId, newQty) => {
-    if (!order) return;
+  if (!order) return;
 
-    try {
-      if (newQty <= 0) {
-        await axios.delete(`${API}/order-items/${itemId}/`);
-      } else {
-        await axios.patch(`${API}/order-items/${itemId}/`, {
-          quantity: newQty,
-        });
-      }
-
-      await refreshOrder();
-      toast.success(
-      newQty > 1 ? "Quantity increased" : "Quantity decreased"
-      );
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to update quantity");
+  try {
+    if (newQty <= 0) {
+      await axios.delete(`${API}/order-items/${itemId}/`);
+    } else {
+      await axios.patch(`${API}/order-items/${itemId}/`, {
+        quantity: newQty,
+      });
     }
-  };
+
+    const res = await axios.get(`${API}/orders/${order.id}/`);
+
+    if (!res.data.items || res.data.items.length === 0) {
+      setOrder(null);
+      setItems([]);
+      setSelectedTable(null);
+
+      const tablesRes = await axios.get(`${API}/tables/`);
+      setTables(tablesRes.data);
+    } else {
+      setOrder(res.data);
+      setItems(res.data.items);
+    }
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to update quantity");
+  }
+};
 
   /* ---------- REMOVE ITEM ---------- */
   const removeItem = async (itemId) => {
-    if (!order) return;
+  if (!order) return;
 
-    try {
-      await axios.delete(`${API}/order-items/${itemId}/`);
-      await refreshOrder();
+  try {
+    await axios.delete(`${API}/order-items/${itemId}/`);
 
-      toast.success("Item removed");
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to remove item");
+    // 🔄 Refresh order
+    const res = await axios.get(`${API}/orders/${order.id}/`);
+
+    // 🧹 If backend auto-cancelled empty order
+    if (!res.data.items || res.data.items.length === 0) {
+      setOrder(null);
+      setItems([]);
+      setSelectedTable(null);
+
+      // 🔁 Refresh tables so table becomes free
+      const tablesRes = await axios.get(`${API}/tables/`);
+      setTables(tablesRes.data);
+    } else {
+      setOrder(res.data);
+      setItems(res.data.items);
     }
-  };
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to remove item");
+  }
+};
+
   const handleOrderPaid = async () => {
     setOrder(null);
     setItems([]);
@@ -116,6 +156,26 @@ export default function POSPage() {
     setTables(res.data);
   };
   
+const handleCancelEmpty = async () => {
+  if (!order) return;
+
+  try {
+    await axios.post(`${API}/orders/${order.id}/cancel/`);
+
+    toast.success("Order cancelled");
+
+    // Reset UI
+    setOrder(null);
+    setItems([]);
+    setSelectedTable(null);
+
+    // Refresh tables so table becomes free
+    await refreshTables();
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to cancel order");
+  }
+};
 
   /* ---------- REFRESH ORDER ---------- */
   const refreshOrder = async () => {
@@ -128,35 +188,37 @@ export default function POSPage() {
   /* ---------- UI ---------- */
   return (
     <div className="grid grid-cols-12 gap-6 h-full">
-      {/* TABLES */}
-      <div className="col-span-3 bg-white rounded-2xl p-4 shadow">
-        <TableSelector
-          tables={tables}
-          selectedTable={selectedTable}
-          onSelectTable={handleTableSelect}
-        />
-      </div>
+  {/* PRODUCTS + TABLE BAR */}
+  <div className="col-span-8 bg-white rounded-2xl p-4 shadow flex flex-col">
+    
+    {/* TABLE BAR */}
+    <TableBar
+      tables={tables}
+      selectedTable={selectedTable}
+      onSelectTable={handleTableSelect}
+    />
 
-      {/* PRODUCTS */}
-      <div className="col-span-5 bg-white rounded-2xl p-4 shadow">
-        <ProductGrid
-          products={products}
-          onAdd={handleAddToCart}
-        />
-      </div>
+    <div className="border-b my-4" />
 
-      {/* CART */}
-      <div className="col-span-4 bg-white rounded-2xl p-4 shadow">
-        <CartPanel
-        order={order}
-        items={items}
-        loading={loadingOrder}
-        onQtyChange={updateItemQty}
-        onRemove={removeItem}
-        onOrderPaid={handleOrderPaid}
-      />
+    {/* PRODUCTS */}
+    <ProductGrid
+      products={products}
+      onAdd={handleAddToCart}
+    />
+  </div>
 
-      </div>
-    </div>
+  {/* CART */}
+  <div className="col-span-4 bg-white rounded-2xl p-4 shadow">
+    <CartPanel
+      order={order}
+      items={items}
+      loading={loadingOrder}
+      onQtyChange={updateItemQty}
+      onRemove={removeItem}
+      onOrderPaid={handleOrderPaid}
+      onCancelEmpty={handleCancelEmpty}   // 👈 new
+    />
+  </div>
+</div>
   );
 }

@@ -11,6 +11,7 @@ export default function CartPanel({
   onQtyChange,
   onRemove,
   onOrderPaid,
+  onCancelEmpty,
 }) {
   const [showPayment, setShowPayment] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("cash");
@@ -39,7 +40,7 @@ export default function CartPanel({
           payment_method: paymentMethod,
         });
 
-        toast.success("Payment completed"); // ✅ ADD THIS
+        toast.success("Payment completed"); //
 
         setShowPayment(false);
         await onOrderPaid();
@@ -108,6 +109,14 @@ export default function CartPanel({
             <span>Total</span>
             <span>${total.toFixed(2)}</span>
           </div>
+          {order && order.status === "open" && items.length === 0 && (
+  <button
+    onClick={onCancelEmpty}
+    className="w-full mt-3 border border-red-300 text-red-600 py-2 rounded-lg hover:bg-red-50"
+  >
+    Cancel Order
+  </button>
+)}
 
           <button
             disabled={items.length === 0 || isLocked}
