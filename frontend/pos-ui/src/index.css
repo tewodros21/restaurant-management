@@ -7,3 +7,59 @@ body {
   background-color: #f7f7f7;
   font-family: 'Inter', sans-serif;
 }
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .fixed {
+    position: static !important;
+  }
+
+  .bg-black\/40 {
+    background: none !important;
+  }
+
+  .shadow-lg,
+  .rounded-lg {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+
+  body .text-black {
+    visibility: visible;
+  }
+}
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .print\\:hidden {
+    display: none !important;
+  }
+
+  .print\\:w-full {
+    width: 100% !important;
+  }
+
+  .print\\:shadow-none {
+    box-shadow: none !important;
+  }
+
+  .print\\:rounded-none {
+    border-radius: 0 !important;
+  }
+
+  .fixed {
+    position: static !important;
+  }
+
+  .bg-black\/40 {
+    display: none;
+  }
+
+  .bg-white {
+    visibility: visible;
+  }
+}

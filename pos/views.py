@@ -56,18 +56,25 @@ class OrderViewSet(viewsets.ModelViewSet):
     def by_table(self, request, table_id=None):
         table = Table.objects.get(id=table_id)
 
-        # Return existing open order
-        order = Order.objects.filter(table=table, status="open").first()
+        # 🔥 Return latest ACTIVE order (not paid/cancelled)
+        order = (
+            Order.objects
+            .filter(table=table)
+            .exclude(status__in=["paid", "cancelled"])
+            .order_by("-created_at")
+            .first()
+        )
+
         if order:
             return Response(self.get_serializer(order).data)
 
-        # Create EMPTY open order (table still free)
-        order = Order.objects.create(
-            table=table,
-            status="open"
-        )
+        # ✅ Create new order ONLY if none exists
+        order = Order.objects.create(table=table, status="open")
+        table.is_occupied = True
+        table.save()
 
         return Response(self.get_serializer(order).data, status=201)
+
 
     # ❌ CANCEL ORDER
     @action(detail=True, methods=["post"])
@@ -94,9 +101,9 @@ class OrderViewSet(viewsets.ModelViewSet):
     def close(self, request, pk=None):
         order = self.get_object()
 
-        if order.status != "open":
+        if order.status not in ["open", "served"]:
             return Response(
-                {"error": "Only open orders can be closed"},
+                {"error": "Only open or served orders can be closed"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -119,6 +126,47 @@ class OrderViewSet(viewsets.ModelViewSet):
             "message": "Order closed",
             "total": order.get_total_amount(),
         })
+
+
+    # 🧾 SEND TO KITCHEN
+    @action(detail=True, methods=["post"])
+    def send_to_kitchen(self, request, pk=None):
+        order = self.get_object()
+
+        if order.status != "open":
+            return Response(
+                {"error": "Only open orders can be sent to kitchen"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if order.items.count() == 0:
+            return Response(
+                {"error": "Cannot send empty order"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        order.status = "preparing"
+        order.save()
+
+        return Response({"message": "Order sent to kitchen"})
+
+    # 🍽️ MARK AS SERVED (Kitchen)
+    @action(detail=True, methods=["post"])
+    def mark_served(self, request, pk=None):
+        order = self.get_object()
+
+        if order.status != "preparing":
+            return Response(
+                {"error": "Only preparing orders can be served"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        order.status = "served"
+        order.save()
+
+        return Response({"message": "Order served"})
+
+    
 
 
 # =========================

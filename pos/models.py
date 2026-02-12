@@ -24,8 +24,10 @@ class Order(models.Model):
         ("digital", "Digital"),
     ]
 
-    STATUS_CHOICES = [
+    STATUS_CHOICES = [   
         ("open", "Open"),
+        ("preparing", "Preparing"),
+        ("served", "Served"),
         ("paid", "Paid"),
         ("cancelled", "Cancelled"),
     ]

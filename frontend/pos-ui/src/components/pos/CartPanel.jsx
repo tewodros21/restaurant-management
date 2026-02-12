@@ -12,6 +12,7 @@ export default function CartPanel({
   onRemove,
   onOrderPaid,
   onCancelEmpty,
+  onSendToKitchen,
 }) {
   const [showPayment, setShowPayment] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("cash");
@@ -25,7 +26,9 @@ export default function CartPanel({
     return <p className="text-gray-400 text-center mt-10">Select a table to start</p>;
   }
 
-  const isLocked = order.status !== "open";
+  //const isLocked = order.status !== "open";
+  const isLocked = ["paid", "cancelled"].includes(order.status);
+
 
   const total = items.reduce(
     (sum, item) => sum + Number(item.product_price) * item.quantity,
@@ -33,24 +36,34 @@ export default function CartPanel({
   );
 
   /* ---------- PAYMENT ---------- */
-    const handlePayment = async () => {
-      setPaying(true);
-      try {
-        await axios.post(`${API}/orders/${order.id}/close/`, {
-          payment_method: paymentMethod,
-        });
+const handlePayment = async () => {
+  setPaying(true);
+  try {
+    const res = await axios.post(
+      `${API}/orders/${order.id}/close/`,
+      { payment_method: paymentMethod }
+    );
 
-        toast.success("Payment completed"); //
+    toast.success("Payment completed");
 
-        setShowPayment(false);
-        await onOrderPaid();
-      } catch (err) {
-        console.error(err);
-        toast.error("Payment failed");
-      } finally {
-        setPaying(false);
-      }
-    };
+    setShowPayment(false);
+
+    // ✅ PASS CLOSED ORDER DATA
+    onOrderPaid({
+      ...order,
+      status: "paid",
+      payment_method: paymentMethod,
+      total: res.data.total,
+      items: items, // 🔑 IMPORTANT
+    });
+  } catch (err) {
+    console.error(err);
+    toast.error("Payment failed");
+  } finally {
+    setPaying(false);
+  }
+};
+
 
 
   return (
@@ -109,14 +122,22 @@ export default function CartPanel({
             <span>Total</span>
             <span>${total.toFixed(2)}</span>
           </div>
-          {order && order.status === "open" && items.length === 0 && (
-  <button
-    onClick={onCancelEmpty}
-    className="w-full mt-3 border border-red-300 text-red-600 py-2 rounded-lg hover:bg-red-50"
-  >
-    Cancel Order
-  </button>
-)}
+            {order && order.status === "open" && items.length === 0 && (
+            <button
+              onClick={onCancelEmpty}
+              className="w-full mt-3 border border-red-300 text-red-600 py-2 rounded-lg hover:bg-red-50"
+            >
+              Cancel Order
+            </button>
+          )}
+          {order.status === "open" && items.length > 0 && (
+              <button
+                onClick={onSendToKitchen}
+                className="w-full mt-3 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
+              >
+                Send to Kitchen
+              </button>
+            )}
 
           <button
             disabled={items.length === 0 || isLocked}

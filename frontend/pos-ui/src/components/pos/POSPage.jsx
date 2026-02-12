@@ -7,6 +7,8 @@ import TableSelector from "./TableSelector";
 import ProductGrid from "./ProductGrid";
 import CartPanel from "./CartPanel";
 import TableBar from "../layout/TableBar";
+import ReceiptModal from "./ReceiptModal";
+
 
 
 const API = "http://127.0.0.1:8000/api";
@@ -19,6 +21,13 @@ export default function POSPage() {
   const [selectedTable, setSelectedTable] = useState(null);
   const [order, setOrder] = useState(null);
   const [items, setItems] = useState([]);
+
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [paidOrder, setPaidOrder] = useState(null);
+
+  const [paidItems, setPaidItems] = useState([]);
+
+
 
   const [loadingOrder, setLoadingOrder] = useState(false);
 
@@ -146,15 +155,24 @@ const handleAddToCart = async (productId) => {
   }
 };
 
-  const handleOrderPaid = async () => {
-    setOrder(null);
-    setItems([]);
-    setSelectedTable(null);
 
-    // refresh tables (important!)
-    const res = await axios.get(`${API}/tables/`);
-    setTables(res.data);
-  };
+const handleOrderPaid = async (closedOrder) => {
+  // save receipt data BEFORE clearing UI
+  setPaidOrder(closedOrder);
+  setPaidItems(items); // VERY IMPORTANT
+  setShowReceipt(true);
+
+  // reset POS UI
+  setOrder(null);
+  setItems([]);
+  setSelectedTable(null);
+
+  // refresh tables
+  const res = await axios.get(`${API}/tables/`);
+  setTables(res.data);
+};
+
+
   
 const handleCancelEmpty = async () => {
   if (!order) return;
@@ -177,6 +195,21 @@ const handleCancelEmpty = async () => {
   }
 };
 
+  const handleSendToKitchen = async () => {
+    try {
+      await axios.post(`${API}/orders/${order.id}/send_to_kitchen/`);
+
+      toast.success("Sent to kitchen");
+
+      const res = await axios.get(`${API}/orders/${order.id}/`);
+      setOrder(res.data);
+
+    } catch (err) {
+      toast.error("Failed to send to kitchen");
+    }
+  };
+
+
   /* ---------- REFRESH ORDER ---------- */
   const refreshOrder = async () => {
     const res = await axios.get(`${API}/orders/${order.id}/`);
@@ -186,39 +219,48 @@ const handleCancelEmpty = async () => {
   
 
   /* ---------- UI ---------- */
-  return (
-    <div className="grid grid-cols-12 gap-6 h-full">
-  {/* PRODUCTS + TABLE BAR */}
-  <div className="col-span-8 bg-white rounded-2xl p-4 shadow flex flex-col">
+return (
+  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
     
-    {/* TABLE BAR */}
-    <TableBar
-      tables={tables}
-      selectedTable={selectedTable}
-      onSelectTable={handleTableSelect}
-    />
+    {/* PRODUCTS + TABLE BAR */}
+    <div className="lg:col-span-8 bg-white rounded-2xl p-4 shadow flex flex-col">
+      <TableBar
+        tables={tables}
+        selectedTable={selectedTable}
+        onSelectTable={handleTableSelect}
+      />
 
-    <div className="border-b my-4" />
+      <div className="border-b my-4" />
 
-    {/* PRODUCTS */}
-    <ProductGrid
-      products={products}
-      onAdd={handleAddToCart}
-    />
+      <ProductGrid
+        products={products}
+        onAdd={handleAddToCart}
+      />
+    </div>
+
+    {/* CART */}
+    <div className="lg:col-span-4 bg-white rounded-2xl p-4 shadow">
+      <CartPanel
+        order={order}
+        items={items}
+        loading={loadingOrder}
+        onQtyChange={updateItemQty}
+        onRemove={removeItem}
+        onOrderPaid={handleOrderPaid}
+        onCancelEmpty={handleCancelEmpty}
+        onSendToKitchen={handleSendToKitchen}
+      />
+    </div>
+
+    {/* RECEIPT */}
+    {showReceipt && (
+      <ReceiptModal
+        order={paidOrder}
+        items={paidItems}
+        onClose={() => setShowReceipt(false)}
+      />
+    )}
   </div>
+);
 
-  {/* CART */}
-  <div className="col-span-4 bg-white rounded-2xl p-4 shadow">
-    <CartPanel
-      order={order}
-      items={items}
-      loading={loadingOrder}
-      onQtyChange={updateItemQty}
-      onRemove={removeItem}
-      onOrderPaid={handleOrderPaid}
-      onCancelEmpty={handleCancelEmpty}   // 👈 new
-    />
-  </div>
-</div>
-  );
 }
