@@ -60,52 +60,55 @@ export default function ReceiptModal({ order, items = [], onClose }) {
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white w-[320px] rounded-xl shadow-lg p-4">
         <div ref={receiptRef}>
-          <h1>RestroETHIX</h1>
-          <p>POS Receipt</p>
+  <h1 className="text-center font-bold">RestroETHIX</h1>
+  <p className="text-center text-xs">POS Receipt</p>
 
-          <div className="divider" />
+  <div className="divider" />
 
-          <div className="row">
-            <span>Order</span>
-            <span>#{order.id}</span>
-          </div>
-          <div className="row">
-            <span>Table</span>
-            <span>{order.table}</span>
-          </div>
-          <div className="row">
-            <span>Date</span>
-            <span>{new Date().toLocaleString()}</span>
-          </div>
-          <div className="row">
-            <span>Payment</span>
-            <span>{order.payment_method}</span>
-          </div>
+  <div className="row">
+    <span>Order</span>
+    <span>#{order.id}</span>
+  </div>
+  <div className="row">
+    <span>Table</span>
+    <span>{order.table}</span>
+  </div>
+  <div className="row">
+    <span>Date</span>
+    <span>{new Date().toLocaleString()}</span>
+  </div>
+  <div className="row">
+    <span>Payment</span>
+    <span className="capitalize">
+      {order.payment_method}
+    </span>
+  </div>
 
-          <div className="divider" />
+  <div className="divider" />
 
-          {items.map((item) => (
-            <div key={item.id} className="row">
-              <span>
-                {item.product_name} × {item.quantity}
-              </span>
-              <span>
-                {(item.quantity * Number(item.product_price)).toFixed(2)}
-              </span>
-            </div>
-          ))}
+  {items.map((item) => (
+    <div key={item.id} className="row">
+      <span>
+        {item.product_name} × {item.quantity}
+      </span>
+      <span>
+        {(item.quantity * Number(item.product_price)).toFixed(2)}
+      </span>
+    </div>
+  ))}
 
-          <div className="divider" />
+  <div className="divider" />
 
-          <div className="row total">
-            <span>Total</span>
-            <span>{total.toFixed(2)}</span>
-          </div>
+  <div className="row total">
+    <span>Total</span>
+    <span>{total.toFixed(2)}</span>
+  </div>
 
-          <p style={{ marginTop: 10 }}>
-            Thank you for dining with us
-          </p>
-        </div>
+  <p className="text-center text-xs mt-3">
+    Thank you for dining with us
+  </p>
+</div>
+
 
         <div className="flex gap-2 mt-4">
           <button

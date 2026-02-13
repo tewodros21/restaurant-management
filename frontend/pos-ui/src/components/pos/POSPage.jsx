@@ -220,39 +220,54 @@ const handleCancelEmpty = async () => {
 
   /* ---------- UI ---------- */
 return (
-  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
-    
-    {/* PRODUCTS + TABLE BAR */}
-    <div className="lg:col-span-8 bg-white rounded-2xl p-4 shadow flex flex-col">
-      <TableBar
-        tables={tables}
-        selectedTable={selectedTable}
-        onSelectTable={handleTableSelect}
-      />
+  <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[calc(100vh-64px)]">
 
-      <div className="border-b my-4" />
+    {/* LEFT: PRODUCTS */}
+    <div className="lg:col-span-8 flex flex-col bg-white rounded-2xl shadow overflow-hidden">
 
-      <ProductGrid
-        products={products}
-        onAdd={handleAddToCart}
-      />
+      {/* TABLE BAR */}
+      <div className="p-4 border-b">
+        <TableBar
+          tables={tables}
+          selectedTable={selectedTable}
+          onSelectTable={handleTableSelect}
+        />
+      </div>
+
+      {/* PRODUCTS (SCROLLABLE) */}
+      <div className="flex-1 overflow-y-auto p-4">
+        <ProductGrid
+          products={products}
+          onAdd={handleAddToCart}
+        />
+      </div>
     </div>
 
-    {/* CART */}
-    <div className="lg:col-span-4 bg-white rounded-2xl p-4 shadow">
-      <CartPanel
-        order={order}
-        items={items}
-        loading={loadingOrder}
-        onQtyChange={updateItemQty}
-        onRemove={removeItem}
-        onOrderPaid={handleOrderPaid}
-        onCancelEmpty={handleCancelEmpty}
-        onSendToKitchen={handleSendToKitchen}
-      />
+    {/* RIGHT: CART */}
+    <div className="lg:col-span-4 flex flex-col bg-white rounded-2xl shadow overflow-hidden">
+
+      {/* CART HEADER */}
+      <div className="p-4 border-b">
+        <h2 className="font-semibold text-lg">Current Order</h2>
+      </div>
+
+      {/* CART ITEMS (SCROLLABLE) */}
+    {/* CART (FULL) */}
+<div className="flex-1 overflow-y-auto p-4">
+  <CartPanel
+    order={order}
+    items={items}
+    loading={loadingOrder}
+    onQtyChange={updateItemQty}
+    onRemove={removeItem}
+    onOrderPaid={handleOrderPaid}
+    onCancelEmpty={handleCancelEmpty}
+    onSendToKitchen={handleSendToKitchen}
+  />
+</div>
+
     </div>
 
-    {/* RECEIPT */}
     {showReceipt && (
       <ReceiptModal
         order={paidOrder}
@@ -262,5 +277,6 @@ return (
     )}
   </div>
 );
+
 
 }

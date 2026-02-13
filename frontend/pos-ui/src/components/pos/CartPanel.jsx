@@ -65,91 +65,129 @@ const handlePayment = async () => {
 };
 
 
+return (
+  <>
+    <div className="flex flex-col h-full">
 
-  return (
-    <>
-      <div className="flex flex-col h-full">
-        <h2 className="text-lg font-semibold mb-2">Order #{order.id}</h2>
-        <p className="text-xs text-gray-500 mb-4">Status: {order.status}</p>
+      {/* HEADER (STICKY) */}
+      <div className="sticky top-0 bg-white z-10 pb-3 border-b">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold">
+            Order #{order.id}
+          </h2>
 
-        <div className="flex-1 overflow-y-auto space-y-3">
-          {items.length === 0 && (
-            <p className="text-gray-400 text-center mt-10">No items yet</p>
-          )}
-
-          {items.map((item) => (
-            <div key={item.id} className="flex justify-between border-b pb-2">
-              <div>
-                <p className="font-medium">{item.product_name}</p>
-                <p className="text-sm text-gray-500">
-                  ${Number(item.product_price).toFixed(2)}
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  disabled={isLocked || item.quantity <= 1}
-                  onClick={() => onQtyChange(item.id, item.quantity - 1)}
-                  className="px-2 bg-gray-200 rounded"
-                >
-                  −
-                </button>
-
-                <span className="w-6 text-center">{item.quantity}</span>
-
-                <button
-                  disabled={isLocked}
-                  onClick={() => onQtyChange(item.id, item.quantity + 1)}
-                  className="px-2 bg-gray-200 rounded"
-                >
-                  +
-                </button>
-
-                <button
-                  disabled={isLocked}
-                  onClick={() => onRemove(item.id)}
-                  className="text-red-500 font-bold ml-2"
-                >
-                  ×
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="border-t pt-4">
-          <div className="flex justify-between font-bold text-lg">
-            <span>Total</span>
-            <span>${total.toFixed(2)}</span>
-          </div>
-            {order && order.status === "open" && items.length === 0 && (
-            <button
-              onClick={onCancelEmpty}
-              className="w-full mt-3 border border-red-300 text-red-600 py-2 rounded-lg hover:bg-red-50"
-            >
-              Cancel Order
-            </button>
-          )}
-          {order.status === "open" && items.length > 0 && (
-              <button
-                onClick={onSendToKitchen}
-                className="w-full mt-3 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
-              >
-                Send to Kitchen
-              </button>
-            )}
-
-          <button
-            disabled={items.length === 0 || isLocked}
-            onClick={() => setShowPayment(true)}
-            className="w-full mt-4 bg-orange-500 text-white py-2 rounded-lg"
+          <span
+            className={`px-2 py-1 rounded-full text-xs font-semibold
+              ${order.status === "open" && "bg-gray-200 text-gray-700"}
+              ${order.status === "preparing" && "bg-blue-100 text-blue-700"}
+              ${order.status === "served" && "bg-green-100 text-green-700"}
+              ${order.status === "paid" && "bg-gray-800 text-white"}
+            `}
           >
-            Bill & Payment
-          </button>
+            {order.status}
+          </span>
         </div>
+
+        <p className="text-xs text-gray-500 mt-1">
+          Table #{order.table}
+        </p>
       </div>
 
-      {/* PAYMENT MODAL */}
+      {/* ITEMS (SCROLLABLE) */}
+      <div className="flex-1 overflow-y-auto py-3 space-y-3">
+        {items.length === 0 && (
+          <p className="text-gray-400 text-center mt-10">
+            No items added
+          </p>
+        )}
+
+        {items.map((item) => (
+          <div
+            key={item.id}
+            className="flex justify-between items-center border rounded-lg p-3"
+          >
+            <div>
+              <p className="font-medium">
+                {item.product_name}
+              </p>
+              <p className="text-xs text-gray-500">
+                ${Number(item.product_price).toFixed(2)}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                disabled={isLocked || item.quantity <= 1}
+                onClick={() =>
+                  onQtyChange(item.id, item.quantity - 1)
+                }
+                className="w-7 h-7 rounded bg-gray-200"
+              >
+                −
+              </button>
+
+              <span className="w-6 text-center">
+                {item.quantity}
+              </span>
+
+              <button
+                disabled={isLocked}
+                onClick={() =>
+                  onQtyChange(item.id, item.quantity + 1)
+                }
+                className="w-7 h-7 rounded bg-gray-200"
+              >
+                +
+              </button>
+
+              <button
+                disabled={isLocked}
+                onClick={() => onRemove(item.id)}
+                className="text-red-500 ml-2"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* FOOTER (STICKY) */}
+      <div className="sticky bottom-0 bg-white border-t pt-4">
+        <div className="flex justify-between text-lg font-bold mb-3">
+          <span>Total</span>
+          <span>${total.toFixed(2)}</span>
+        </div>
+
+        {order.status === "open" && items.length > 0 && (
+          <button
+            onClick={onSendToKitchen}
+            className="w-full mb-2 bg-blue-600 text-white py-2.5 rounded-lg"
+          >
+            Send to Kitchen
+          </button>
+        )}
+
+        <button
+          disabled={items.length === 0 || isLocked}
+          onClick={() => setShowPayment(true)}
+          className="w-full bg-orange-500 text-white py-2.5 rounded-lg"
+        >
+          Bill & Payment
+        </button>
+
+        {order.status === "open" && items.length === 0 && (
+          <button
+            onClick={onCancelEmpty}
+            className="w-full mt-2 text-sm text-red-600"
+          >
+            Cancel Order
+          </button>
+        )}
+      </div>
+    </div>
+
+       {/* PAYMENT MODAL */}
       {showPayment && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center">
           <div className="bg-white p-6 rounded-xl w-96">
@@ -187,6 +225,12 @@ const handlePayment = async () => {
           </div>
         </div>
       )}
-    </>
-  );
+  </>
+);
+
 }
+
+
+
+
+

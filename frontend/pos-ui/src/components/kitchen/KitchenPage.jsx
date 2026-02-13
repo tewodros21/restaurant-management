@@ -8,10 +8,11 @@ export default function KitchenPage() {
   const [orders, setOrders] = useState([]);
   const prevOrderIds = useRef(new Set());
 
-  const playSound = () => {
-    const audio = new Audio("../assets/new_order.mp3");
-    audio.play().catch(() => {});
-  };
+ const playSound = () => {
+  const audio = new Audio("/new_order.mp3");
+  audio.play().catch(() => {});
+};
+
 
   const loadOrders = async () => {
     const res = await axios.get(`${API}/orders/`);
@@ -39,19 +40,36 @@ export default function KitchenPage() {
     return () => clearInterval(interval);
   }, []);
 
-  return (
-    <div className="p-6 bg-gray-100 min-h-screen">
-      <h1 className="text-2xl font-bold mb-4">Kitchen Orders</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {orders.map((order) => (
-          <KOTCard
-            key={order.id}
-            order={order}
-            onUpdate={loadOrders}
-          />
-        ))}
-      </div>
+ return (
+  <div className="min-h-screen bg-slate-900 text-white p-6">
+    {/* HEADER */}
+    <div className="flex items-center justify-between mb-6">
+      <h1 className="text-2xl font-bold tracking-wide">
+        🍳 Kitchen Display
+      </h1>
+      <span className="text-sm text-slate-400">
+        Auto refresh every 10s
+      </span>
     </div>
-  );
+
+    {/* EMPTY STATE */}
+    {orders.length === 0 && (
+      <div className="text-center text-slate-400 mt-20">
+        No active orders
+      </div>
+    )}
+
+    {/* ORDERS */}
+    <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-4 gap-5">
+      {orders.map((order) => (
+        <KOTCard
+          key={order.id}
+          order={order}
+          onUpdate={loadOrders}
+        />
+      ))}
+    </div>
+  </div>
+);
+
 }

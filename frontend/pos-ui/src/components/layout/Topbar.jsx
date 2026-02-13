@@ -2,40 +2,31 @@ import { Search, Bell } from "lucide-react";
 
 export default function Topbar() {
   return (
-    <header className="h-16 bg-white border-b flex items-center justify-between px-6">
+    <header className="h-14 bg-white border-b flex items-center justify-between px-4">
       {/* LEFT */}
-      <div>
-        <h1 className="text-lg font-semibold">
-          Point of Sale
-        </h1>
-        <p className="text-xs text-gray-500">
-          Manage orders & payments
-        </p>
-      </div>
+      <h1 className="text-sm font-semibold text-gray-700">
+        POS
+      </h1>
 
       {/* RIGHT */}
       <div className="flex items-center gap-4">
-        <div className="relative">
+        <div className="relative hidden md:block">
           <Search
-            size={16}
+            size={14}
             className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
           />
           <input
-            placeholder="Search…"
-            className="pl-9 pr-3 py-1.5 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="pl-9 pr-3 py-1.5 text-sm border rounded-lg w-48"
+            placeholder="Search"
           />
         </div>
 
-        <Bell size={18} className="text-gray-500 cursor-pointer" />
+        <Bell size={18} className="text-gray-500" />
 
-        <div className="flex items-center gap-2">
-          <img
-            src="https://i.pravatar.cc/40"
-            alt="profile"
-            className="w-8 h-8 rounded-full"
-          />
-          <span className="text-sm font-medium">Admin</span>
-        </div>
+        <img
+          src="https://i.pravatar.cc/40"
+          className="w-7 h-7 rounded-full"
+        />
       </div>
     </header>
   );
