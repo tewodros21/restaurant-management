@@ -28,10 +28,15 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 # Allow all origins (for development)
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
+
 CORS_ALLOWED_ORIGINS = [
-    "https://your-frontend-name.vercel.app",
+    "https://restaurant-management-vert-six.vercel.app",
+    "http://localhost:5173", 
+    "http://127.0.0.1:5173", 
 ]
+CORS_ALLOWED_ORIGINS += [ "http://localhost:8000", "http://127.0.0.1:8000", ]
+
 
 # Application definition
 
@@ -45,6 +50,7 @@ INSTALLED_APPS = [
     'pos',
     'rest_framework',
     "corsheaders",
+    "whitenoise.runserver_nostatic",
     
 ]
 
@@ -56,7 +62,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    "corsheaders.middleware.CorsMiddleware",
+    "corsheaders.middleware.CorsMiddleware", 
+    "whitenoise.middleware.WhiteNoiseMiddleware",
 ]
 
 ROOT_URLCONF = 'restaurant_management.urls'
@@ -127,3 +134,5 @@ USE_TZ = True
 STATIC_URL = 'static/'
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
