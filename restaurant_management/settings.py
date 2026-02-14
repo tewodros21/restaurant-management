@@ -29,6 +29,9 @@ DEBUG = True
 ALLOWED_HOSTS = []
 # Allow all origins (for development)
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOWED_ORIGINS = [
+    "https://your-frontend-name.vercel.app",
+]
 
 # Application definition
 
@@ -42,6 +45,7 @@ INSTALLED_APPS = [
     'pos',
     'rest_framework',
     "corsheaders",
+    
 ]
 
 MIDDLEWARE = [
