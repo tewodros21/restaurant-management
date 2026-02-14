@@ -3,7 +3,9 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { CheckCircle, X } from "lucide-react";
 
-const API = "http://127.0.0.1:8000/api";
+//const API = "http://127.0.0.1:8000/api";
+const API = "https://restaurant-management-2lef.onrender.com/api";
+
 
 export default function PaymentModal({ order, total, onClose, onPaid }) {
   const [method, setMethod] = useState("cash");

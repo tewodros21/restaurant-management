@@ -1,7 +1,8 @@
 import axios from "axios";
 import { Clock } from "lucide-react";
 
-const API = "http://127.0.0.1:8000/api";
+//const API = "http://127.0.0.1:8000/api";
+const API = "https://restaurant-management-2lef.onrender.com/api";
 
 const STATUS_COLORS = {
   open: "bg-gray-500",

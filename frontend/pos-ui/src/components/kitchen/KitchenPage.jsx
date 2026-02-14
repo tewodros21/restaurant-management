@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import KOTCard from "./KOTCard";
 
-const API = "http://127.0.0.1:8000/api";
+//const API = "http://127.0.0.1:8000/api";
+const API = "https://restaurant-management-2lef.onrender.com/api";
 
 export default function KitchenPage() {
   const [orders, setOrders] = useState([]);

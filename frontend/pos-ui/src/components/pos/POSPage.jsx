@@ -11,7 +11,8 @@ import ReceiptModal from "./ReceiptModal";
 
 
 
-const API = "http://127.0.0.1:8000/api";
+//const API = "http://127.0.0.1:8000/api";
+const API = "https://restaurant-management-2lef.onrender.com/api";
 
 export default function POSPage() {
   /* ---------- STATE ---------- */
