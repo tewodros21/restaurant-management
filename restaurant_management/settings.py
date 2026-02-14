@@ -26,7 +26,12 @@ SECRET_KEY = 'django-insecure-1ff@sv4z5k7ytqg52wzxdic_(wgda2385w184!$u8rm#qjk-h3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["https://restaurant-management-2lef.onrender.com"]
+ALLOWED_HOSTS = [
+    "restaurant-management-2lef.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
+
 # Allow all origins (for development)
 CORS_ALLOW_ALL_ORIGINS = False
 
